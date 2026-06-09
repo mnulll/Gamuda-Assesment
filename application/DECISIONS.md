@@ -116,6 +116,24 @@ either side can be swapped out independently.
 
 **Trade-off:** One file is simpler to maintain — one place to update a version, no duplication. The downside is that both Docker images install all packages even though the frontend only needs three of them (`streamlit`, `requests`, `pillow`) and has no use for `ultralytics` or `torch`. This makes the frontend image unnecessarily large . For this assessment that is acceptable. In production I would split them so each service only installs what it actually needs.
 
+---
+
+## Decision 8 — Model weights baked into the Docker image (current limitation)
+
+**Decision:** `best.pt` is currently committed to the repository and copied directly into the Docker image at build time via the `weights/` folder.
+
+**Alternatives considered:**
+- Store the model in external blob storage (e.g. Azure Blob Storage, AWS S3, Google Cloud Storage) and have the API fetch it at startup.
+
+**Trade-off:** Baking the weights into the image is the simplest thing to get a working deployment quickly — no extra infrastructure, no credentials to manage, no download step. But it creates real problems as the project grows:
+
+- Swapping to a new model version means rebuilding and redeploying the entire container, even though the application code hasn't changed.
+- There is no separation between "which code is running" and "which model is running" — you can't independently version them.
+
+**What the better approach looks like:** The model lives in blob storage under a versioned path, for example `models/defect-seg/v1/best.pt`, `models/defect-seg/v2/best.pt`. At container startup, the API downloads the correct version based on an environment variable like `MODEL_VERSION=v2` before loading it into memory. The Docker healthcheck already handles the delay, so the startup sequence stays the same from the outside.
+
+This gives you proper model versioning — you can promote a new model to production by changing one environment variable and restarting the container, with no rebuild. You can also roll back instantly the same way. In a team setting this is the point where the ML engineer hands off a new `best.pt` to the deployment pipeline without touching application code at all.
+
 ## Future Enhancements
 
 Things I would add with more time, grouped by priority.
