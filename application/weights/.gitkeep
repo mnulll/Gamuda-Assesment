@@ -1,2 +1,0 @@
-Place your fine-tuned YOLOv8 segmentation model here as: best.pt
-(Run ../download_default_weights.py to fetch a default model to start.)
