@@ -1,0 +1,51 @@
+{
+  "version": "0.3.3",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "Rebar corrosion",
+      "text": "",
+      "points": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          445.0
+        ],
+        [
+          4.0,
+          447.0
+        ],
+        [
+          93.0,
+          445.0
+        ],
+        [
+          120.0,
+          447.0
+        ],
+        [
+          441.0,
+          447.0
+        ],
+        [
+          447.0,
+          445.0
+        ],
+        [
+          445.0,
+          0.0
+        ]
+      ],
+      "group_id": null,
+      "shape_type": "polygon",
+      "flags": {}
+    }
+  ],
+  "imagePath": "damage446.jpg",
+  "imageData": null,
+  "imageHeight": 448,
+  "imageWidth": 448
+}

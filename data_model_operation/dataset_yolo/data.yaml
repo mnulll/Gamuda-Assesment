@@ -1,0 +1,15 @@
+path: dataset_yolo
+
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: concrete crushing
+  1: delamination
+  2: microcrack
+  3: minor spalling
+  4: moderate spalling
+  5: rebar corrosion
+  6: structural crack
+  7: structural deformation
