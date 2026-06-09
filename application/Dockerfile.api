@@ -1,0 +1,23 @@
+# ---- FastAPI inference service -------------------------------------------- #
+FROM python:3.11-slim
+
+# System libs required by OpenCV at runtime.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /code
+
+# Install dependencies first for better layer caching.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy API code and model weights.
+COPY api/ ./api/
+COPY weights/ ./weights/
+
+ENV MODEL_PATH=weights/best.pt
+EXPOSE 8000
+
+# Single worker keeps the model in one process; scale via replicas if needed.
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

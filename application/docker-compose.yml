@@ -1,0 +1,29 @@
+# Orchestrates the two services as one deployable unit.
+#   - api: FastAPI + YOLOv8 inference (internal :8000)
+#   - app: Streamlit frontend (public :8501)
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    expose:
+      - "8000"          # internal-only; the frontend talks to it over the compose network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "8501:8501"     # public entry point
+    depends_on:
+      api:
+        condition: service_healthy
