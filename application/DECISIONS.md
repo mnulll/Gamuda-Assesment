@@ -115,3 +115,39 @@ either side can be swapped out independently.
 - Separate `requirements.txt` per service (`api/requirements.txt` and `app/requirements.txt`).
 
 **Trade-off:** One file is simpler to maintain — one place to update a version, no duplication. The downside is that both Docker images install all packages even though the frontend only needs three of them (`streamlit`, `requests`, `pillow`) and has no use for `ultralytics` or `torch`. This makes the frontend image unnecessarily large . For this assessment that is acceptable. In production I would split them so each service only installs what it actually needs.
+
+## Future Enhancements
+
+Things I would add with more time, grouped by priority.
+
+---
+
+### 1. Export model to TensorRT for faster inference
+
+Right now the model runs in PyTorch on CPU. Exporting to TensorRT would give significant speedups on a GPU-enabled server — typically 3–5x faster inference with lower memory usage. Ultralytics supports this in one line:
+
+The API would then load `best.engine` instead of `best.pt`.
+
+---
+
+### 2. Request validation with Pydantic response schemas
+
+The `/predict` endpoint currently accepts any file upload with no validation — a non-image file, a corrupted upload, or a zero-byte file would cause an unhandled crash. The fix is to add proper input validation and typed response models using Pydantic:
+
+
+This gives three things: FastAPI auto-validates the response shape before it goes out. It also validates the uploaded file is actually an image (JPEG/PNG) and rejects anything else before it reaches the model.
+
+---
+
+
+### 3. Batch inference endpoint
+
+The current `/predict` endpoint handles one image per request. For a real inspection workflow — uploading a set of photos from a site visit — a `/predict/batch` endpoint that accepts multiple images and returns results for all of them would save significant round-trip time. Ultralytics supports batched inference natively so the model side is straightforward; the main work is handling partial failures (one bad image in a batch of ten should not fail the whole request).
+
+---
+
+### 5. Confidence threshold as a per-request parameter
+
+Right now `CONF_THRESHOLD` is a fixed environment variable. Different use cases want different thresholds — a safety-critical inspection might want 0.5 to reduce false positives, a routine survey might want 0.15 to catch everything.
+
+
